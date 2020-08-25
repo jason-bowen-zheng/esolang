@@ -8,18 +8,18 @@ void run(char *name);
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
-		puts("BrainFuck: expect 2 arguments");
+		printf("BrainFuck: expect 2 argumentsi, found %d", argc);
 	} else {
 		if (strcmp(argv[1], "--help") == 0) {
 			puts("BrainFuck v1.0\n");
-			puts("+ ++ptr");
-			puts("- --ptr");
-			puts("[ while(*ptr){");
-			puts("] }");
-			puts("> ++*ptr");
-			puts("< --*ptr");
-			puts(". putchar(*ptr)");
-			puts(", *ptr=getch()");
+			puts("+\t++ptr");
+			puts("-\t--ptr");
+			puts(">\t++*ptr");
+			puts("<\t--*ptr");
+			puts(".\tputchar(*ptr)");
+			puts(",\t*ptr=getch()");
+			puts("[\twhile(*ptr){");
+			puts("]\t}");
 		} else if (strcmp(argv[1], "--version") == 0) {
 			puts("BrainFuck v1.0");
 		} else {
