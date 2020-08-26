@@ -2,7 +2,7 @@
 
 from os.path import isfile
 import string 
-from sys import argv
+from sys import argv, stdout
 from shlex import split
 
 def main():
@@ -27,47 +27,131 @@ class asm():
             exit(1)
         else:
             self.program = open(name, 'r').readlines()
-            self.max_menory = 1024
+            self.max_memory = 1024
             self.reg = [0] * 8
-            self.menory = [0] * self.max_menory
+            self.memory = [0] * self.max_memory
             self.ptr = 0
 
     def check_ptr(self):
-        if self.ptr > self.max_menory and self.ptr < 0:
-            print('asm: ptr out of range')
-            exit(1)
+        if self.ptr > self.max_memory and self.ptr < 0:
+            raise TypeError('asm: ptr out of range')
 
     def define(self, *data):
         ptr = self.ptr
         for item in data:
             try:
-                self.menory[self.ptr] = int(item)
+                self.memory[self.ptr] = int(item)
             except:
                 try:
                     self.memory[self.ptr] = int(item, 16)
                 except:
                     for i in item:
                         if i in string.ascii_letters + string.digits + string.punctuation:
-                            self.menory[self.ptr] = ord(i)
+                            self.memory[self.ptr] = ord(i)
                             self.ptr += 1
                             self.check_ptr()
                         else:
-                            print('asm: invalid define: %s' % item)
-                            exit(1)
+                            raise TypeError('asm: invalid define: %s' % item)
                 self.ptr += 1
                 self.check_ptr()
             else:
                 self.ptr = ptr
 
+    def goto(self, line):
+        try:
+            self.now = int(line)
+            if self.now >= len(self.program) and self.now < 0:
+                raise
+        except:
+            raise TypeError("asm: goto %s is invalid" % ptr)
+
+    def mov(self, source, target):
+        if source[0] == '#':
+            # 源是寄存器
+            self.mov_reg(source[1:], target)
+        elif source[0] == '[' and source[-1] == ']':
+            # 源是内存地址
+            self.mov_men(source[1:-1], target)
+        else:
+            raise TypeError("asm: invalid MOV source: '%s'" % source)
+
+    def mov_reg(self, source, target):
+        try:
+            source = int(source)
+        except:
+            raise TypeError("asm: invalid register: '%s'" % source)
+        else:
+            if source >= 8 or source < 0:
+                raise TypeError("asm: invalid register number: %d" % source)
+        try:
+            self.reg[source] = int(target)
+        except:
+            try:
+                self.reg[source] = ord(target)
+            except:
+                try:
+                    if target[0] == '[' and target[-1] == ']':
+                        self.reg[source] = self.memory[int(target[1:-1])]
+                    else:
+                        raise TypeError("asm: invalid MOV target: '%s'" % target)
+                except:
+                    raise TypeError("asm: invalid MOV target: '%s'" % target)
+
+    def mov_mem(self, source, target):
+        try:
+            source = int(source)
+        except:
+            raise TypeError("asm: invalid source: '%s'" % source)
+        else:
+            if source >= self.max_memory and source < 0:
+                raise TypeError("asm: invalid ptr: '%s'" % source)
+        try:
+            self.memory[source] = int(target)
+        except:
+            try:
+                self.memory[source] = ord(target)
+            except:
+                if target[0] == '#':
+                    try:
+                        target = int(target[1:])
+                    except:
+                        raise TypeError("asm: invalid target: '%s'" % target)
+                    else:
+                        if target >= 8 or target < 0:
+                            raise TypeError("asm: invalid register number: %d" % target)
+                        else:
+                            self.memory[source] = self.reg[target]
+
+    def write(self):
+        stdout.write(chr(self.memory[self.ptr]))
+
     def run(self):
-        for line in self.program:
+        self.now = -1
+        while True:
+            self.now += 1
+            if self.now >= len(self.program):
+                break
+            line = self.program[self.now]
+            line = line.strip()
             line = split(line)
-            if line == []:
-                pass
-            elif line[0][0] == '#':
-                pass
-            elif line[0] == 'DEFINE':
-                self.define(*line[1:])
+            try:
+                if line == []:
+                    pass
+                elif line[0][0] == '#':
+                    pass
+                elif line[0] == 'DEFINE':
+                    self.define(*line[1:])
+                elif line[0] == 'GOTO':
+                    self.goto(*line[1:])
+                elif line[0] == 'MOV':
+                    self.mov(*line[1:])
+                elif line[0] == 'WRITE':
+                    self.write(*line[1:])
+                else:
+                    raise TypeError("asm: invalid tag: '%s'" % line[0])
+            except Exception as err:
+                print(str(err))
+                exit(1)
 
 if __name__ == '__main__':
     main()
