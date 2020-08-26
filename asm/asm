@@ -37,7 +37,8 @@ class asm():
             print('asm: ptr out of range')
             exit(1)
 
-    def define(*data):
+    def define(self, *data):
+        ptr = self.ptr
         for item in data:
             try:
                 self.menory[self.ptr] = int(item)
@@ -48,18 +49,25 @@ class asm():
                     for i in item:
                         if i in string.ascii_letters + string.digits + string.punctuation:
                             self.menory[self.ptr] = ord(i)
-                        self.ptr += 1
-                        self.check_ptr()
-                    else:
-                        print('asm: invalid define')
-                        exit(1)
+                            self.ptr += 1
+                            self.check_ptr()
+                        else:
+                            print('asm: invalid define: %s' % item)
+                            exit(1)
                 self.ptr += 1
                 self.check_ptr()
+            else:
+                self.ptr = ptr
 
     def run(self):
         for line in self.program:
             line = split(line)
-            if line[0][0] == '#' or line == []:
+            if line == []:
+                pass
+            elif line[0][0] == '#':
                 pass
             elif line[0] == 'DEFINE':
                 self.define(*line[1:])
+
+if __name__ == '__main__':
+    main()
