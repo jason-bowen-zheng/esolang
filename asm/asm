@@ -1,0 +1,65 @@
+#!/usr/bin/python3
+
+from os.path import isfile
+import string 
+from sys import argv
+from shlex import split
+
+def main():
+    if len(argv) != 2:
+        print("asm: expect 2 args, found %d" % len(argv))
+    else:
+        if argv[1] == '--help':
+            print('asm v1.0, an assembly like language\n')
+            print('usage: asm <file>')
+        elif argv[1] == '--kw':
+            print('asm keyword list:\n')
+        elif argv[1] == '--version':
+            print('asm v1.0')
+        else:
+            asm(argv[1]).run()
+
+class asm():
+
+    def __init__(self, name):
+        if not isfile(name):
+            print("asm: file '%s' not found" % name)
+            exit(1)
+        else:
+            self.program = open(name, 'r').readlines()
+            self.max_menory = 1024
+            self.reg = [0] * 8
+            self.menory = [0] * self.max_menory
+            self.ptr = 0
+
+    def check_ptr(self):
+        if self.ptr > self.max_menory and self.ptr < 0:
+            print('asm: ptr out of range')
+            exit(1)
+
+    def define(*data):
+        for item in data:
+            try:
+                self.menory[self.ptr] = int(item)
+            except:
+                try:
+                    self.memory[self.ptr] = int(item, 16)
+                except:
+                    for i in item:
+                        if i in string.ascii_letters + string.digits + string.punctuation:
+                            self.menory[self.ptr] = ord(i)
+                        self.ptr += 1
+                        self.check_ptr()
+                    else:
+                        print('asm: invalid define')
+                        exit(1)
+                self.ptr += 1
+                self.check_ptr()
+
+    def run(self):
+        for line in self.program:
+            line = split(line)
+            if line[0][0] == '#' or line == []:
+                pass
+            elif line[0] == 'DEFINE':
+                self.define(*line[1:])
