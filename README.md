@@ -3,3 +3,4 @@
 
 # 到底有什么?
 - BrainFuck(就是 fuck your brain 的那个)
+- asm(非常像汇编语言, 但是又不一样)
